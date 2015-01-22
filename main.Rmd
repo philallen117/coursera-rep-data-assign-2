@@ -24,9 +24,29 @@ if (!file.exists(bz2Path)) {
 if (!file.exists(csvPath)) {
   bunzip2(filename = bz2Path, destname = csvPath, remove = FALSE)
 }
-StormData <- read.csv("data/StormData.csv")
+StormData <- read.csv("data/StormData.csv", stringsAsFactors = FALSE)
+StormData$BGN_DATE <- strptime(StormData$BGN_DATE,"%m/%d/%Y", tz = "UTC")
+StormData$END_DATE <- strptime(StormData$END_DATE,"%m/%d/%Y", tz = "UTC")
+StormData$EVTYPE <- as.factor(StormData$EVTYPE)
+
 ```
 
+```{r}
+try2 <- StormData[1:10000,]
+p <- ggplot(data = try2, aes(log(1 + FATALITIES), log(1 + PROPDMG)))
+p + geom_point()
+
+outcomes <- "cbind(FATALITIES, INJURIES, PROPDMG, CROPDMG)"
+outcomes.time <- as.formula(paste0(outcomes," ~ year(BGN_DATE)"))
+sums.time <- aggregate(outcomes.time, data = try2, FUN = sum)
+outcomes.type <- as.formula(paste0(outcomes," ~ EVTYPE"))
+means.type <- aggregate(outcomes.type, data = try2, FUN = mean)
+tiles.type <- aggregate(FATALITIES ~ EVTYPE, data = try2, FUN = quantile, probs = (c(0.9, 0.99, 0.999))) # didn't work - try dplyr
+# Try to plot several aes on same plot for different quant points with factor on x axis
+# COnsider logs
+library(dplyr)
+
+```
 
 
 ## Results
@@ -36,31 +56,9 @@ StormData <- read.csv("data/StormData.csv")
 ## Exploration of the source data
 
 ```{r}
-names(StormData)
+sort(names(StormData))
 ```
 
-Linkd to doc explanation.
-
-Outcome variables we care about are in columns: 
-
-* People
-
-** FATALITIES
-
-** INJURIES
-
-** PROPDMG
-
-** PROPDMGEXP
-
-** CROPDMG
-
-** CROPDMGEXP
-
-Factors to look for: 
-* Meteorological measures - e.g. windforce, magnitude
-* Geography - tornado alley?
-* Time - are people better protected than they used to be?
 
 
 
