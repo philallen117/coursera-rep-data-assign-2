@@ -1,0 +1,76 @@
+---
+title: "Which weather events are the most harmful?"
+author: "Phil Allen"
+date: "22 January 2015"
+output: html_document
+---
+
+
+## Synopsis: 
+
+Immediately after the title, there should be a synopsis which describes and summarizes your analysis in at most 10 complete sentences.
+
+## Data Processing 
+
+which describes (in words and code) how the data were loaded into R and processed for analysis. In particular, your analysis must start from the raw CSV file containing the data. You cannot do any preprocessing outside the document. If preprocessing is time-consuming you may consider using the cache = TRUE option for certain code chunks.
+
+```{r, cache=TRUE}
+library("R.utils")
+csvPath <- "data/StormData.csv"
+bz2Path <- paste0(csvPath,".bz2")
+if (!file.exists(bz2Path)) {
+    download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2", destfile = bz2Path)
+}
+if (!file.exists(csvPath)) {
+  bunzip2(filename = bz2Path, destname = csvPath, remove = FALSE)
+}
+StormData <- read.csv("data/StormData.csv")
+```
+
+
+
+## Results
+
+
+
+## Exploration of the source data
+
+```{r}
+names(StormData)
+```
+
+Linkd to doc explanation.
+
+Outcome variables we care about are in columns: 
+
+* People
+
+** FATALITIES
+
+** INJURIES
+
+** PROPDMG
+
+** PROPDMGEXP
+
+** CROPDMG
+
+** CROPDMGEXP
+
+Factors to look for: 
+* Meteorological measures - e.g. windforce, magnitude
+* Geography - tornado alley?
+* Time - are people better protected than they used to be?
+
+
+
+Evidence of very skew distribution in some key variables.
+
+```{r}
+summary(StormData$FATALITIES)
+quantile(StormData$FATALITIES, c(0.9, 0.99, 0.999, 0.9999))
+summary(StormData$MAG)
+quantile(StormData$MAG, c(0.9, 0.99, 0.999, 0.9999))
+```
+
+
