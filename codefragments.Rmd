@@ -1,0 +1,27 @@
+---
+title: "codefragments.md"
+author: "Phil Allen"
+date: "Sunday, January 25, 2015"
+output: html_document
+---
+
+Basically, stuff I did not get working.
+
+
+```{r}
+# health.outcomes <- "cbind(FATALITIES, INJURIES)"
+# money.outcomes <- "cbind(PROPDMG, CROPDMG)"
+# outcomes.time <- as.formula(paste0(outcomes," ~ year(BGN_DATE)"))
+# sums.time <- aggregate(outcomes.time, data = try2, FUN = sum)
+# health.outcomes.type <- as.formula(paste0(outcomes," ~ EVTYPE"))
+# tiles.type <- aggregate(FATALITIES ~ EVTYPE, data = try2, FUN = quantile, probs = (c(0.9, 0.99, 0.999))) # didn't work - try dplyr
+# Try to plot several aes on same plot for different quant points with factor on x axis
+# COnsider logs
+# p <- qplot(decade)
+
+# chosen <- aggregate(cbind(FATALITIES, INJURIES, PROPDMG, CROPDMG) ~ EVTYPE, 
+# 					data = decade,
+# 					FUN = sum)
+
+```
+

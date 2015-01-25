@@ -38,35 +38,78 @@ StormData$END_DATE <- strptime(StormData$END_DATE,"%m/%d/%Y", tz = "UTC")
 StormData$EVTYPE <- as.factor(StormData$EVTYPE)
 ```
 
-Pick a decade
+Pick a decade where numbers of reported events are relatively stable.
 
-```{r}
+```{r, cache=TRUE}
 library(lubridate)
-StormData$year <- year(StormData$BGN_DATE)
-StormData$count <- 1
-names(StormData) <- c()
-decade <- StormData[StormData$year > 1990 & StormData$year <= 2000,]
-chosen <- aggregate(cbind(FATALITIES, INJURIES, PROPDMG, CROPDMG) ~ EVTYPE, 
-					data = decade,
-					FUN = sum)
-# head(chosen[order(-chosen$INJURIES),])
-# head(chosen[order(-chosen$PROPDMG),])
-# head(chosen[order(-chosen$CROPDMG),])
-
+decade <- StormData[year(StormData$BGN_DATE) > 1990
+					& year(StormData$BGN_DATE) <= 2000,]
+decade.fat <- aggregate(FATALITIES ~ EVTYPE, data = decade, FUN = sum)
+decade.inj <- aggregate(INJURIES ~ EVTYPE, data = decade, FUN = sum)
+decade.damage <- aggregate(PROPDMG + CROPDMG ~ EVTYPE, data = decade, FUN = sum)
 ```
 
-```{r}
-kable(head(chosen[order(-chosen$FATALITIES),]))
+For direct human harm, intially consider fatalities.
+
+```{r, results='asis'}
+library(knitr)
+kable(head(decade.fat[order(-decade.fat$FATALITIES),], n = 5),
+	  row.names = FALSE,
+	  col.names = c("Type of event", "Number of fatalities"),
+	  caption = "Top five event types by number of fatalities")
+```
+
+The ordering for injuries is somewhat different.
+
+```{r, results='asis'}
+kable(head(decade.inj[order(-decade.inj$INJURIES),], n = 5),
+	  row.names = FALSE,
+	  col.names = c("Type of event", "Number of injuries"),
+	  caption = "Top five event types by number of injuries")
+```
+
+So rank depends on the relative weight of these outcomes.
+Many of the injuries will be life-changing,
+but more will heal in a few weeks.
+Arbitrarily choosing a ratio 100:1, the ranks are as follows.
+
+```{r, results='asis'}
+decade.human.harm <- merge(decade.fat, decade.inj)
+decade.human.harm$weighted =
+	100 * decade.human.harm$FATALITIES + decade.human.harm$INJURIES
+kable(head(decade.inj[order(-decade.inj$INJURIES),], n = 5),
+	  row.names = FALSE,
+	  col.names = c("Type of event", "Weighted human harm"),
+	  caption = "Top five event types by weighted human harm")
+```
+
+
+
+```{r, results='asis'}
+kable(head(decade.damage[order(-decade.damage$PROPDMG),], n = 5),
+	  row.names = FALSE,
+	  col.names = c("Type of event", "Value of property and crop damage (K$)"),
+	  caption = "Top five event types by value of damage")
+```
+
+
+```{r, results='asis'}
+library(knitr)
+kable(head(decade.fat[order(-decade.fat$FATALITIES),], n = 5),
+	  row.names = FALSE,
+	  col.names = c("Type of event", "Value of crop damage"),
+	  caption = "Top five event types by value of crop damage")
 
 ```
 
 
 Is there any strong correlation between fatalities and property damage?
 ```{r}
-library(ggplot2)
-p <- ggplot(data = decade, aes(log(1 + FATALITIES), log(1 + PROPDMG)))
-p + geom_point()
+# library(ggplot2)
+# p <- ggplot(data = decade, aes(log(1 + FATALITIES), log(1 + PROPDMG)))
+# p + geom_point()
 ```
+
 There's a range of property damage for no or low levels of fatalities.
 Where there are fatalites, there is some correlation between fatalities 
 and the value of property damage.
@@ -77,24 +120,6 @@ typically does the most damage, when it happens (mean, median)
 or causes the most extreme damage, when it happens (some high percentile)
 Decided to go with the middle of those, and to use median.
 
-```{r}
-health.outcomes <- "cbind(FATALITIES, INJURIES)"
-money.outcomes <- "cbind(PROPDMG, CROPDMG)"
-# outcomes.time <- as.formula(paste0(outcomes," ~ year(BGN_DATE)"))
-# sums.time <- aggregate(outcomes.time, data = try2, FUN = sum)
-health.outcomes.type <- as.formula(paste0(outcomes," ~ EVTYPE"))
-tiles.type <- aggregate(FATALITIES ~ EVTYPE, data = try2, FUN = quantile, probs = (c(0.9, 0.99, 0.999))) # didn't work - try dplyr
-# Try to plot several aes on same plot for different quant points with factor on x axis
-# COnsider logs
-
-p <- qplot(decade)
-
-```
-
-```{r}
-
-```
-
 
 ## Results
 
@@ -102,20 +127,14 @@ p <- qplot(decade)
 
 ## Exploration of the source data
 
-```{r}
-sort(names(StormData))
-```
-
-
-
 
 Evidence of very skew distribution in some key variables.
 
 ```{r}
 summary(StormData$FATALITIES)
 quantile(StormData$FATALITIES, c(0.9, 0.99, 0.999, 0.9999))
-summary(StormData$MAG)
-quantile(StormData$MAG, c(0.9, 0.99, 0.999, 0.9999))
+summary(StormData$PROPDMG)
+quantile(StormData$PROPDMG, c(0.9, 0.99, 0.999, 0.9999))
 ```
 
 ## Limitations
