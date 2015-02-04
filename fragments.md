@@ -37,18 +37,3 @@ we care about are in columns:
 
 ## Supporting material
 
-### Data source
-
-Storm Data is an official publication of the National Oceanic
-and Atmospheric Administration (NOAA) which documents:
-
-a. The occurrence of storms and other significant weather phenomena having
-sufficient intensity to cause loss of life, injuries, significant property damage, and/or
-disruption to commerce;
-
-b. Rare, unusual, weather phenomena that generate media attention, such as snow
-flurries in South Florida or the San Diego coastal area; and
-
-c. Other significant meteorological events, such as record maximum or minimum
-temperatures or precipitation that occur in connection with another event.
-
