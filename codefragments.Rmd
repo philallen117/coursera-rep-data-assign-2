@@ -5,7 +5,64 @@ date: "Sunday, January 25, 2015"
 output: html_document
 ---
 
-Basically, stuff I did not get working.
+## Ideas from others
+
+```{r}
+# Reading a bz2 file.
+con<-bzfile("repdata-data-StormData.csv.bz2", "r")
+storm<- read.csv(con)
+close(con)
+# Really need to add 1900? I prefer lubridate year
+storm$BGN_DATE<- strptime(storm$BGN_DATE, "%m/%d/%Y %H:%M:%S")
+storm$YEAR<- storm$BGN_DATE$year+1900
+# Looking for invalid "exponent" (I did not see exponent)
+# What do those lists do?
+mag<-c("h", "k", "m", "b")
+invalidP<- which(!tolower(storm$PROPDMGEXP) %in% mag & storm$PROPDMG>0)
+invalidPROPDMG<- list(Count=length(invalidP),
+                      Count.Perc=length(invalidP)/nrow(storm[storm$PROPDMG>0,]),
+                      Number.Perc=sum(storm$PROPDMG[invalidP])/sum(storm$PROPDMG),
+                      Count.byYear=with(storm[invalidP, ], table(tolower(PROPDMGEXP), YEAR)))
+
+invalidC<- which(!tolower(storm$CROPDMGEXP) %in% mag & storm$CROPDMG>0)
+invalidCROPDMG<- list(Count=length(invalidC),
+                      Count.Perc=length(invalidC)/nrow(storm[storm$CROPDMG>0,]),
+                      Number.Perc=sum(storm$CROPDMG[invalidC])/sum(storm$CROPDMG),
+                      Count.byYear=with(storm[invalidC, ], table(tolower(CROPDMGEXP), YEAR)))
+
+## Then calc money amounts from PROPDMG * PROPMGEXP. Note lookup of EXP symbol
+## into number.
+# set multipliers corresponding to mag codes
+mag10<-10^c(2, 3, 6, 9)
+
+storm$PROPDMG.M<- storm$PROPDMG * mag10[match(tolower(storm$PROPDMGEXP), mag)]/10^6
+storm$CROPDMG.M<- storm$CROPDMG * mag10[match(tolower(storm$CROPDMGEXP), mag)]/10^6
+
+#if damage number=0, its dollar amount should be also 0, not NA
+storm$PROPDMG.M[storm$PROPDMG==0]<- 0
+storm$CROPDMG.M[storm$CROPDMG==0]<- 0
+
+## 
+
+## How to do a pie chart. (Note: also from data.table.)
+p1 <- ggplot(fatalities, aes_string(x=factor(1), y="total_fatalities", fill="event")) +
+            geom_bar(stat='identity', color='black') +
+            guides(fill=guide_legend(override.aes=list(colour=NA))) + 
+    coord_polar(theta='y') +
+    theme(axis.ticks=element_blank(),
+            axis.text.y=element_blank(),
+            axis.text.x=element_text(colour='black'),
+            axis.title=element_blank()) +
+    scale_y_continuous(breaks=cumsum(fatalities[["total_fatalities"]]) - fatalities[["total_fatalities"]] / 2, labels=fatalities[["event"]]) + 
+    ggtitle("Fatalities based on event")
+
+## Arranging ggplot in a grid ... but stuff gets chopped, possibly need chunk 
+## attributes
+grid.arrange(p1, p2, nrow=2, ncol=1)
+
+```
+
+## Stuff I did not get working.
 
 
 ```{r}
